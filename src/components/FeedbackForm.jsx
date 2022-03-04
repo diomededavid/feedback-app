@@ -1,19 +1,32 @@
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import Card from '../Shared/Card';
 import Button from '../Shared/Button';
 import RatingSelect from './RatingSelect';
+import FeedBackContext from '../context/FeedBackContext';
 
-function FeedbackForm({ handleAdd }) {
+function FeedbackForm() {
   const [text, setText] = useState('');
   const [rating, setRating] = useState(10);
   const [btnDisabled, setBtnDisabled] = useState(true);
   const [message, setMessage] = useState('');
 
+  // Getting FeedbackEdit the object with item and boolean
+  const { addFeedback, feedbackEdit, updateFeedback } =
+    useContext(FeedBackContext);
+
+  useEffect(() => {
+    if (feedbackEdit.edit === true) {
+      setBtnDisabled(false);
+      setText(feedbackEdit.item.text);
+      setRating(feedbackEdit.item.rating);
+    }
+  }, [feedbackEdit]);
+
   const handleTextChange = (e) => {
     if (text === '') {
       setBtnDisabled(true);
       setMessage(null);
-    } else if (text !== '' && text.trim().length <= 10) {
+    } else if (text !== '' && text.trim().length < 10) {
       setBtnDisabled(true);
       setMessage('Text must be least 10 Characters');
     } else {
@@ -30,9 +43,14 @@ function FeedbackForm({ handleAdd }) {
         text,
         rating,
       };
-
-      handleAdd(newFeedback);
+      if (feedbackEdit.edit === true) {
+        updateFeedback(feedbackEdit.item.id, newFeedback);
+        feedbackEdit.edit = false; // reset edit mode
+      } else {
+        addFeedback(newFeedback);
+      }
       setText('');
+      setBtnDisabled(true);
     }
   };
 
